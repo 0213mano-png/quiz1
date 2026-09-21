@@ -1,1102 +1,335 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>確認テスト 前半（解説付き・修正表示）</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>主任技師等任用候補者選考 確認テスト前半</title>
 <style>
- body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; line-height:1.6; margin:0; background:#f7f8fb;}
- header{background:white; position:sticky; top:0; z-index:10; border-bottom:1px solid #e6e8ef;}
- .wrap{max-width:980px; margin:0 auto; padding:20px;}
- h1{font-size:22px; margin:8px 0;}
- .card{background:white; border:1px solid #e6e8ef; border-radius:16px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.04); margin:16px 0;}
- .title{font-weight:700; margin-bottom:8px;}
- .instruction{color:#444; margin-bottom:12px;}
- .opt{display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid #e6e8ef; border-radius:12px; margin:8px 0; background:#fafbff;}
- .opt input{margin-top:4px;}
- .opt.correct.sel{border-color:#22c55e; background:#f0fff4;}
- .opt.incorrect.sel{border-color:#ef4444; background:#fff1f2;}
- .explain{font-size:14px; color:#334155; border-left:3px solid #cbd5e1; padding-left:10px; margin-top:6px;}
- .controls{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;}
- button{padding:10px 14px; border-radius:12px; border:1px solid #cbd5e1; background:#111827; color:white; cursor:pointer;}
- button.secondary{background:white; color:#111827;}
- .score{font-weight:700;}
- .footer{color:#6b7280; font-size:13px; margin-top:24px;}
- .badge{display:inline-block; font-size:12px; padding:4px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; margin-left:8px;}
- /* Diff styles */
- del{color:#6b7280; text-decoration-color:#ef4444; text-decoration-thickness:2px;}
- .ins{color:#ef4444; font-weight:600;}
- .insline{color:#ef4444; font-weight:600;}
- .diffline{margin:4px 0;}
- .correctline{margin-top:4px; color:#1f2937;}
+:root{
+  --bg:#f4f6fa;--card:#fff;--border:#e3e7ef;--text:#111827;--muted:#64748b;
+  --ok:#15803d;--okbg:#f0fdf4;--ng:#dc2626;--ngbg:#fff1f2;--accent:#3730a3;--accent2:#4f46e5;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  line-height:1.68;margin:0;background:var(--bg);color:var(--text);
+  padding-bottom:calc(88px + env(safe-area-inset-bottom));
+}
+button,input{font:inherit}
+button{touch-action:manipulation}
+.wrap{width:min(100%,900px);margin:0 auto;padding-left:16px;padding-right:16px}
+.topbar{
+  background:rgba(255,255,255,.96);position:sticky;top:0;z-index:20;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(10px)
+}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;padding-bottom:8px}
+.brand h1{font-size:17px;line-height:1.3;margin:0;font-weight:800}
+.brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.icon-button,.ghost-button{
+  border:1px solid var(--border);background:#fff;color:#1f2937;border-radius:12px;
+  min-height:42px;padding:8px 12px;font-weight:700;cursor:pointer
+}
+.progress-wrap{padding-bottom:8px}
+.progress-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:700;margin-bottom:6px}
+.progress-row span:last-child{color:var(--muted);font-weight:600}
+.progress-track{height:7px;background:#e9edf5;border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;width:0;background:var(--accent2);border-radius:999px;transition:width .2s ease}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:2px;padding-bottom:10px}
+.shuffle-toggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;user-select:none}
+.shuffle-toggle input{width:19px;height:19px;cursor:pointer}
+#app{padding-top:12px;padding-bottom:18px}
+.card{
+  display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;
+  padding:18px 16px;box-shadow:0 4px 18px rgba(15,23,42,.05);margin:0
+}
+.card.active{display:block}
+.question-chip{
+  display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#3730a3;
+  padding:4px 10px;font-size:12px;font-weight:800;margin-bottom:10px
+}
+.title{font-weight:750;font-size:16px;line-height:1.75;margin-bottom:16px;white-space:normal;overflow-wrap:anywhere}
+.question-options{display:grid;gap:10px}
+.opt{
+  display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--border);
+  border-radius:14px;background:#fff;cursor:pointer;min-height:56px;transition:.12s ease;
+  -webkit-tap-highlight-color:transparent
+}
+.opt:active{transform:scale(.995)}
+.opt input{margin:4px 0 0;width:20px;height:20px;flex:0 0 auto;accent-color:var(--accent2)}
+.opt .option-body{font-size:15px;line-height:1.7;overflow-wrap:anywhere;word-break:normal;line-break:strict;white-space:normal}
+.option-label{font-weight:800;margin-right:6px}
+.opt:has(input:checked){border-color:#818cf8;background:#f5f7ff;box-shadow:0 0 0 1px rgba(99,102,241,.08)}
+.opt.correct.sel{border-color:#22c55e;background:var(--okbg)}
+.opt.incorrect.sel{border-color:#ef4444;background:var(--ngbg)}
+.opt.correct-answer{border-color:#86efac;background:#f7fff9}
+.question-reset-row{display:flex;justify-content:flex-end;margin-top:12px}
+.question-reset{border:0;background:transparent;color:var(--muted);padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer}
+.score{font-weight:850;font-size:17px;margin-top:16px;padding:12px 14px;border-radius:12px;background:#f8fafc}
+.explain-details{margin-top:10px;border:1px solid var(--border);border-radius:14px;background:#f8fafc;overflow:hidden}
+.explain-details summary{list-style:none;cursor:pointer;padding:13px 14px;font-weight:800;font-size:14px}
+.explain-details summary::-webkit-details-marker{display:none}
+.explain-details summary::after{content:"＋";float:right;color:var(--muted);font-size:18px;line-height:1}
+.explain-details[open] summary::after{content:"−"}
+.explain{font-size:14px;color:#334155;padding:0 14px 14px;overflow-wrap:anywhere}
+.answerline{margin:0 0 10px;font-size:15px;font-weight:700}
+.diffblock{margin:12px 0;padding-top:10px;border-top:1px dashed #cbd5e1}
+.difflabel{font-weight:800;margin-bottom:5px}
+.diffline{margin-top:5px}
+.correctline{margin-top:6px;color:#1f2937}
+.ins{color:#dc2626;font-weight:800}
+del{color:#64748b;text-decoration-color:#ef4444;text-decoration-thickness:2px}
+.footer{color:#6b7280;font-size:12px;margin:16px 2px 0}
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.98);
+  border-top:1px solid var(--border);
+  padding:10px max(12px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-right));
+  box-shadow:0 -5px 20px rgba(15,23,42,.07)
+}
+.bottom-nav-inner{width:min(100%,900px);margin:0 auto;display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:8px}
+.nav-btn{min-height:48px;border-radius:13px;border:1px solid var(--border);font-weight:800;cursor:pointer;background:#fff;color:#1f2937}
+.nav-btn.primary{background:#111827;color:#fff;border-color:#111827}
+.nav-btn:disabled{opacity:.38;cursor:default}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(15,23,42,.46);display:none;align-items:flex-end}
+.overlay.open{display:flex}
+.sheet{
+  width:100%;max-height:82vh;background:#fff;border-radius:22px 22px 0 0;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom));overflow:auto;
+  box-shadow:0 -12px 34px rgba(15,23,42,.18)
+}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:-16px;background:#fff;padding:8px 0 12px;z-index:2}
+.sheet-head h2{font-size:17px;margin:0}
+.question-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.qjump{aspect-ratio:1;border-radius:12px;border:1px solid var(--border);background:#fff;color:#1f2937;font-weight:800;cursor:pointer}
+.qjump.answered{background:#eef2ff;border-color:#c7d2fe}
+.qjump.correct{background:#ecfdf3;border-color:#86efac;color:#166534}
+.qjump.wrong{background:#fff1f2;border-color:#fda4af;color:#9f1239}
+.qjump.current{outline:2px solid var(--accent2);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin:12px 0}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:3px;border:1px solid var(--border);background:#fff}
+.dot.answered{background:#eef2ff;border-color:#c7d2fe}
+.dot.correct{background:#ecfdf3;border-color:#86efac}
+.dot.wrong{background:#fff1f2;border-color:#fda4af}
+@media(min-width:700px){
+  .brand h1{font-size:20px}.card{padding:26px 28px}.title{font-size:18px}.opt .option-body{font-size:16px}
+  .question-grid{grid-template-columns:repeat(10,1fr)}
+  .sheet{width:min(760px,calc(100% - 40px));margin:0 auto 20px;border-radius:22px;max-height:75vh}
+  .overlay{align-items:center}
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>確認テスト（前半）<span class="badge">自動採点・修正表示</span></h1>
-    <div class="footer">誤っている箇所に<del>取り消し線</del>、その隣に<span class="ins">赤文字の正しい表現</span>を表示します。</div>
+<header class="topbar">
+  <div class="wrap header-row">
+    <div class="brand"><h1>主任技師等任用候補者選考</h1><div class="sub">確認テスト前半 2026</div></div>
+    <button type="button" class="icon-button" id="questionListBtn">問題一覧</button>
+  </div>
+  <div class="wrap progress-wrap">
+    <div class="progress-row"><span id="progressText">問 1 / 22</span><span id="answeredText">回答 0 / 22</span></div>
+    <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+  </div>
+  <div class="wrap toolbar">
+    <label class="shuffle-toggle"><input type="checkbox" id="globalShuffle"> 選択肢をシャッフル</label>
+    <button type="button" class="ghost-button" id="resetAllBtn">全てリセット</button>
   </div>
 </header>
+
 <main class="wrap" id="app"></main>
+
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button type="button" class="nav-btn" id="prevBtn">← 前へ</button>
+    <button type="button" class="nav-btn primary" id="gradeBtn">採点</button>
+    <button type="button" class="nav-btn" id="nextBtn">次へ →</button>
+  </div>
+</div>
+
+<div class="overlay" id="questionOverlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="questionSheetTitle">
+    <div class="sheet-head">
+      <h2 id="questionSheetTitle">問題一覧</h2>
+      <button type="button" class="icon-button" id="closeQuestionListBtn">閉じる</button>
+    </div>
+    <div class="legend">
+      <span><i class="dot"></i>未回答</span><span><i class="dot answered"></i>回答済み</span>
+      <span><i class="dot correct"></i>正解</span><span><i class="dot wrong"></i>不正解</span>
+    </div>
+    <div class="question-grid" id="questionGrid"></div>
+  </div>
+</div>
+
+<script src="quiz-data-1.js"></script>
+<script src="quiz-data-2.js"></script>
+<script src="quiz-data-3.js"></script>
+<script src="quiz-data-4.js"></script>
 <script>
-    const DATA = [
-  {
-    "id": 1,
-    "title": "第1問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "独立行政法人国立病院機構法（平成１４年法律第１９１号）に基づく、特定独立行政法人として、 平成１６年４月１日に設立され、全国１４０の病院（令和６年４月１日現在）を一つの法人として運営している。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、地域医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、<del>地域</del><span class='ins'>新興感染症発生・まん延時における</span>医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。\n</div><div class='correctline'>正しい文： <span class='insline'>地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、新興感染症発生・まん延時における医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。\n</span></div>"
-      },
-      {                                 
-        "label": "3",
-        "text": "重症心身障害、筋ジス・神経難病、精神、結核・呼吸器、エイズなど民間では体制の整備、経験、または不採算とされることからアプローチが困難な分野についても、患者・家族が安心して治療・療養ができるよう、各地域の国立病院機構がセーフティネットとして支えている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "5法人はそれぞれ悪性新生物、精神・神経疾患、感染症、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>5法人はそれぞれ悪性新生物、精神・神経疾患、<del>感染症</del><span class='ins'>循環器病</span>、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。\n</div><div class='correctline'>正しい文： <span class='insline'>5法人はそれぞれ悪性新生物、精神・神経疾患、循環器病、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "令和７年４月１日に国立感染症研究所と国立研究開発法人国立国際医療研究センターを統合した国立健康危機管理研究機構が設立され、英語名を「Japan Institute for Health Security」、略称はJIHS（ジース）とされた。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "title": "第2問 次の中から正しい文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-correct",
-    "options": [
-      {
-        "label": "1",
-        "text": "国立健康危機管理研究機構設立に伴い、令和７年３月３１日をもって国立国際医療研究センターは解散した。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "国立高度専門医療研究センターは、平成 ２２年４月１日に国立高度専門医療センターの６つの組織は特定独立行政法人に移行し、総称を「国立高度専門医療研究センター」とし、各センターはそれぞれ独立した法人に移行（１センター１法人と）し、職員の身分も公務員型となった。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>国立高度専門医療研究センターは、平成 ２２年４月１日に国立高度専門医療センターの６つの組織は特定独立行政法人に移行し、総称を「国立高度専門医療研究センター」とし、各センターはそれぞれ独立した法人に移行（１センター１法人と）し、職員の身分も<del>公務員型</del><span class='ins'>非公務員型</span>となった。\n</div><div class='correctline'>正しい文： <span class='insline'>国立高度専門医療研究センターは、平成 ２２年４月１日に国立高度専門医療センターの６つの組織は特定独立行政法人に移行し、総称を「国立高度専門医療研究センター」とし、各センターはそれぞれ独立した法人に移行（１センター１法人と）し、職員の身分も非公務員型となった。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "国立ハンセン病療養所は、２００９年４月の「ハンセン病問題の解決の促進に関する法律」施行の趣旨を踏まえ、入所者の療養の質の向上を図り、入所者が地域社会と共生しつつ、良好かつ平穏な療養生活を営むことができることを目的とする厚生労働省所管の施設等機関である。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "第一期中期目標期間、第二期中期目標期間ともに、「全体としておおむね中期計画における所期の目標を達成している」と評価を受けた。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>第一期中期目標期間、第二期中期目標期間ともに、<del>「全体としておおむね中期計画における所期の目標を達成している」</del><span class='ins'>「独法化のねらいや期待に応え、医療・経営の両面において中期目標の水準に対し、大きな成果を上げている」</span>と評価を受けた。\n</div><div class='correctline'>正しい文： <span class='insline'> 第一期中期目標期間、第二期中期目標期間ともに、「独法化のねらいや期待に応え、医療・経営の両面において中期目標の水準に対し、大きな成果を上げている」と評価を受けた。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "高度成長期における国立療養所では、児童福祉対策の拡充に伴い、慢性心疾患及び、先天性代謝異常の受け入れ等各種特殊疾病対策を推進した。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>高度成長期における国立療養所では、児童福祉対策の拡充に伴い、<del>慢性心疾患及び、先天性代謝異常</del><span class='ins'>重度心身障害児（者）及び、進行性筋萎縮症児（者）</span>の受け入れ等各種特殊疾病対策を推進した。\n</div><div class='correctline'>正しい文： <span class='insline'>高度成長期における国立療養所では、児童福祉対策の拡充に伴い、重度心身障害児（者）及び、進行性筋萎縮症児（者）の受け入れ等各種特殊疾病対策を推進した。\n</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 3,
-    "title": "第3問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "「転任」とは、職員をその職員が現に就いている職務と任命権者を同じくする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>「転任」とは、職員をその職員が現に就いている職務と任命権者を<del>同じくする</del><span class='ins'>異にする</span>他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</div><div class='correctline'>正しい文： <span class='insline'>「転任」とは、職員をその職員が現に就いている職務と任命権者を異にする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</span></div>"
-      },
-      {
-        "label": "2",
-        "text": "「配置換」とは、職員をその職員が現に就いている職務と任命権者を異にする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>「配置換」とは、職員をその職員が現に就いている職務と任命権者を<del>異にする</del><span class='ins'>同じくする</span>他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</div><div class='correctline'>正しい文： <span class='insline'>「配置換」とは、職員をその職員が現に就いている職務と任命権者を同じくする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "休職は、本人の同意を得てなされるものであり、職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>休職は、<del>本人の同意を得てなされるものであり</del><span class='ins'>本人の意にかかわりなく一方的になされるものであり</span>職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。\n</div><div class='correctline'>正しい文： <span class='insline'>休職は、本人の意にかかわりなく一方的になされるものであり、職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "心身の故障のため長期休養を要する場合、 3 年を超えない範囲で休職することができる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "「解雇」とは、職員をその意に反して退職させることをいい、解雇される理由として、心身の故障のため、職務の遂行に支障があり、又はこれに堪えない場合や禁錮以上の刑に処せられ、その執行を終わるまで又は執行を受けることがなくなるまでの者等が該当する。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 4,
-    "title": "第4問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "定年は、医師及び歯科医師は年齢６５年、医師以外の副院長は年齢６３年、それ以外の職員は年齢６０年とする。なお、医師及び歯科医師を除く常勤職員であって、令和８年度に６０歳の定年年齢に達する職員から、段階的に定年年齢の引上げを行うこととなっている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "再雇用制度とは定年に達した職員を、定年退職日の翌日から起算して１年を超えない範囲内で期限を定め、その職員を引き続いて勤務させることができる制度である。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'><del>再雇用制度</del><span class='ins'>勤務延長制度</span>とは定年に達した職員を、定年退職日の翌日から起算して１年を超えない範囲内で期限を定め、その職員を引き続いて勤務させることができる制度である。\n</div><div class='correctline'>正しい文： <span class='insline'>勤務延長制度とは定年に達した職員を、定年退職日の翌日から起算して１年を超えない範囲内で期限を定め、その職員を引き続いて勤務させることができる制度である。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "勤務延長制度とは定年退職者等を、従前の勤務実績等に基づく選考により、１年を超えない範囲内で任期を定め、職務に就かせる制度である。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'><del>勤務延長制度</del><span class='ins'>再雇用制度</span>とは定年退職者等を、従前の勤務実績等に基づく選考により、１年を超えない範囲内で任期を定め、職務に就かせる制度である。\n</div><div class='correctline'>正しい文： <span class='insline'>再雇用制度とは定年退職者等を、従前の勤務実績等に基づく選考により、１年を超えない範囲内で任期を定め、職務に就かせる制度である。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "非常勤職員とは１週間あたりの勤務時間が３２時間を超えない範囲内で、かつ、一事業年度を超えない任期を定めて採用する者をいう。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "国立病院機構における雇用期間（任期）を定めて採用された期間を通算した期間が5年を超える期間職員又は非常勤職員（有期雇用職員としての採用回数が２回以上である者に限る。）が、雇用期間（任期）の 満了する日の３０日前までに雇用期間（任期）の定めのない採用への転換を申し出たときは、当該雇用期間（任期）の満了する日の翌日から雇用期間（任期）の定めのない採用となる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'> 国立病院機構における雇用期間（任期）を定めて採用された期間を通算した期間が<del>５年</del> <span class='ins'>３年</span>を超える期間職員又は非常勤職員（有期雇用職員としての採用回数が２回以上である者に限る。）が、雇用期間（任期）の 満了する日の３０日前までに雇用期間（任期）の定めのない採用への転換を申し出たときは、当該雇用期間（任期）の満了する日の翌日から雇用期間（任期）の定めのない採用となる。</div><div class='correctline'>正しい文： <span class='insline'>国立病院機構における雇用期間（任期）を定めて採用された期間を通算した期間が３年を超える期間職員又は非常勤職員（有期雇用職員としての採用回数が２回以上である者に限る。）が、雇用期間（任期）の 満了する日の３０日前までに雇用期間（任期）の定めのない採用への転換を申し出たときは、当該雇用期間（任期）の満了する日の翌日から雇用期間（任期）の定めのない採用となる。</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 5,
-    "title": "第5問 次の中から正しい文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-correct",
-    "options": [
-      {
-        "label": "1",
-        "text": "諭旨退職は１０日以内の期間を定めて辞職願の提出を勧告し、即時に辞職を求めるものであり、退職手当の全部又は一部を支給しないことがある。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "懲戒処分は、理事長が行う。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>懲戒処分は、<del>理事長</del><span class='ins'>任命権者</span>が行う。\n</div><div class='correctline'>正しい文： <span class='insline'>懲戒処分は、任命権者が行う。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "減給は１回の減給処分の額が平均給与の１日分の半額を超えない額を減給する。ただし、減給処分に該当する事案が一給与期間に２回以上ある場合で、当該減給の総額が一給与期間における給与の総額の１０ 分の１を超える場合は１０分の１以内の額を減給し、その超える減給の額は翌給与期間以降に減ずる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "懲戒解雇は予告期間を設けず、即時解雇とする。ただし、この場合、解雇の事由について厚生労働省の認定を受けなければならない。懲戒解雇された者には、退職手当を支給しない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>懲戒解雇は予告期間を設けず、即時解雇とする。ただし、この場合、解雇の事由について<del>厚生労働省</del><span class='ins'>労働基準監督署長</span>の認定を受けなければならない。懲戒解雇された者には、退職手当を支給しない。\n</div><div class='correctline'>正しい文： <span class='insline'>懲戒解雇は予告期間を設けず、即時解雇とする。ただし、この場合、解雇の事由について労働基準監督署長の認定を受けなければならない。懲戒解雇された者には、退職手当を支給しない。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "停職とは停職者の職員としての身分を保有するが、その職務に従事できず、停職期間は１日以上6月以下とする。また、停職の期間中は、給与が支給されない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>停職とは停職者の職員としての身分を保有するが、その職務に従事できず、停職期間は１日以上<del>6月</del><span class='ins'>3月</span>以下とする。また、停職の期間中は、給与が支給されない。\n</div><div class='correctline'>正しい文： <span class='insline'>停職とは停職者の職員としての身分を保有するが、その職務に従事できず、停職期間は１日以上3月以下とする。また、停職の期間中は、給与が支給されない。\n</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 6,
-    "title": "第6問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "職員は、職務上知ることのできた秘密は、在職中はもちろん退職後も漏らし、又は盗用してはならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "職員は、その職務を遂行するについて、法令及び国立病院機構の規程並びに上司の職務上の命令に忠実に従わなければならない。なお、職員は上司の職務命令について意見を申し述べることができない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>職員は、その職務を遂行するについて、法令及び国立病院機構の規程並びに上司の職務上の命令に忠実に従わなければならない。<del>なお、職員は上司の職務命令について意見を申し述べることができない。</del><span class='ins'>なお、職員は上司の職務命令について不服があれば、意見を申し述べることができる。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>職員は、その職務を遂行するについて、法令及び国立病院機構の規程並びに上司の職務上の命令に忠実に従わなければならない。なお、職員は上司の職務命令について不服があれば、意見を申し述べることができる。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "職員は、いかなる場合であっても営利を目的とする私企業を自ら営み、若しくは営利企業の役職員の地位を兼ね、又は営利企業以外の事業の団体の役職員の地位を兼ね、その他いかなる事業に従事し、若しくは事務を行ってはならない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>職員は、<del>いかなる場合であっても</del><span class='ins'>独立行政法人国立病院機構職員兼業規定の定めるところによる許可を得た場合を除き、</span>営利を目的とする私企業を自ら営み、若しくは営利企業の役職員の地位を兼ね、又は営利企業以外の事業の団体の役職員の地位を兼ね、その他いかなる事業に従事し、若しくは事務を行ってはならない。\n</div><div class='correctline'>正しい文： <span class='insline'>職員は、独立行政法人国立病院機構職員兼業規定の定めるところによる許可を得た場合を除き、営利を目的とする私企業を自ら営み、若しくは営利企業の役職員の地位を兼ね、又は営利企業以外の事業の団体の役職員の地位を兼ね、その他いかなる事業に従事し、若しくは事務を行ってはならない。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "職員は、職務の内外を問わず、国立病院機構の信用を傷つけ、又は他の職員の地位全体の不名誉となるような行為をしてはならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "職員は、法令及び国立病 院機構の規程による場合を除いては、その勤務時間及び職務上の注意力のすべてをその職務遂行のために用い、国立病院機構がなすべき責を有する職務にのみ従事しなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 7,
-    "title": "第7問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "職務として出席した会議その他の会合において、利害関係者から茶菓の提供を受けることは禁止されている。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>職務として出席した会議その他の会合において、利害関係者から茶菓の提供を受けることは<del>禁止されている。</del><span class='ins'>できる。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>職務として出席した会議その他の会合において、利害関係者から茶菓の提供を受けることはできる。\n</span></div>"
-      },
-      {
-        "label": "2",
-        "text": "利害関係者から3000円程度の供応接待を受けることができる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>利害関係者から3000円程度の供応接待を受けることが<del>できる。</del><span class='ins'>できない。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>利用関係者から3000円程度の供応接待を受けることができない。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "利害関係者と共に旅行（職務のための旅行を除く。）をすることは禁止されている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "職務として利害関係者を訪問した際に、当該関係者から提供される物品を使用することはできる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "利害関係者から又は利害関係者の負担により、無償での役務の提供を受けることは禁止されている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 8,
-    "title": "第8問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "独立行政法人国立病院機構ハラスメントの防止等に関する規程は、独立行政法人国立病院機構における人事の公正の確保、職員の利益の保護及び職員の能率を十分発揮できる勤務環境を確保することを目的としている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "不当な仲間はずれやいじめ、飲酒の強要や酔った上での迷惑行為、不正行為の強要、自分の支持する宗教や思想にしつこく関与を求めることなどもハラスメントに該当する。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの個人的な地位の優位性を背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの<del>個人的な地位の</del><span class='ins'>職場内の優位性を</span>背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。\n</div><div class='correctline'>正しい文： <span class='insline'>パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの職場内の優位性を背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "セクシュアル・ハラスメントとは、行為者が意図して、他の者を不快にさせる性的な言動のことである。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>セクシュアル・ハラスメントとは、<del>行為者が意図して</del><span class='ins'>行為者の意図に関わらず</span>、他の者を不快にさせる性的な言動のことである。\n</div><div class='correctline'>正しい文： <span class='insline'>セクシュアル・ハラスメントとは、行為者の意図に関わらず、他の者を不快にさせる性的な言動のことである。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "ハラスメントの相談等は、原則として面接によることとし、必要に応じて、電子メール、手紙、電話によるものも受け付けるものとする。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 9,
-    "title": "第9問 監督者について誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "日常の執務を通じた指導等により、ハラスメントに関し、監督する職員の注意を喚起し、ハラスメントに関する認識を深めさせること。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "ハラスメントが職場に生じていないか、又は生じるおそれがないか、監督する患者の言動に十分な注意を払い、勤務環境を害する言動を見逃さないようにすること。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>ハラスメントが職場に生じていないか、又は生じるおそれがないか、監督する<del>患者</del><span class='ins'>監督</span>、の言動に十分な注意を払い、勤務環境を害する言動を見逃さないようにすること。\n</div><div class='correctline'>正しい文： <span class='insline'>ハラスメントが職場に生じていないか、又は生じるおそれがないか、監督する職員の言動に十分な注意を払い、勤務環境を害する言動を見逃さないようにすること。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "職員からハラスメントに関する相談等があった場合には、被害者の同意を得てから対応すること。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>職員からハラスメントに関する相談等があった場合には、<del>被害者の同意を得てから</del><span class='ins'>真摯にかつ迅速に</span>対応すること。\n</div><div class='correctline'>正しい文： <span class='insline'>職員からハラスメントに関する相談等があった場合には、真摯にかつ迅速に対応すること。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "ハラスメントに起因する問題が生じた場合には、迅速かつ適切に対処しなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "ハラスメントに関する相談等に係る調査への協力その他ハラスメントに対する職員の対応に起因して当該職員が職場において不利益を受けることのないようにしなければならないこと。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 10,
-    "title": "第10問 業績評価制度について誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "業績評価制度は、職員の業務遂行意欲の向上、業務の改善を図り、国立病院機構全体の発展を目指すことを目的としている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "職員各人の業績評価方法は、遂行した業務内容についての評価 （絶対評価）ではなく、他人との比較（相対評価）で行う。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>職員各人の業績評価方法は、<del>遂行した業務内容についての評価 （絶対評価）ではなく、他人との比較（相対評価）で行う。</del><span class='ins'>他人との比較（相対評価）ではなく、遂行した業務内容についての評価 （絶対評価）で行う。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>職員各人の業績評価方法は、他人との比較（相対評価）ではなく、遂行した業務内容についての評価 （絶対評価）で行う。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "職員各人の仕事の取組み状況を公正・客観的に評価するため、評価期間の開始前に評価項目及び評価の着眼点の明示を行う。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "評価結果については、前期又は後期の評価終了後の賞与（６月又は１２月）支給時に、賞与明細書に印字することにより被評価者へ伝達する。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>評価結果については、前期又は後期の評価終了後の賞与（６月又は１２月）支給時に、<del>賞与明細書</del><span class='ins'>給与支給明細書</span>に印字することにより被評価者へ伝達する。\n</div><div class='correctline'>正しい文： <span class='insline'>評価結果については、前期又は後期の評価終了後の賞与（６月又は１２月）支給時に、給与支給明細書に印字することにより被評価者へ伝達する。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "評価結果は、賞与（業績手当）及び昇給に反映し、職員各人の業務の改善を図り、病院全体の運営改善に結びつける。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 11,
-    "title": "第11問 業績評価ついて誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "各評価の配点はそれぞれ５０点満点とし、合算した点数を「ＡＡ」～「Ｄ」（最高「１００点」、 最低「２０点」、標準「６０点」）の５段階により区分する。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "評価の種類は、「業務遂行能力評価」及び「業務実績評価」（設定目標に対する評価）とする。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "業務遂行能力評価は、評価者から説明される当年度の病院及び部門（組織）の目標を勘案しながら具体的な業務上の目標設定を行い、その目標の到達度を評価する。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>業務遂行能力評価</del><span class='ins'>業務実績評価</span>は、評価者から説明される当年度の病院及び部門（組織）の目標を勘案しながら具体的な業務上の目標設定を行い、その目標の到達度を評価する。\n</div><div class='correctline'>正しい文： <span class='insline'>業務実績評価は、評価者から説明される当年度の病院及び部門（組織）の目標を勘案しながら具体的な業務上の目標設定を行い、その目標の到達度を評価する。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "業務実績評価は、職員各人に必要な業務に対する姿勢及び能力を評価する。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>業務実績評価</del><span class='ins'>業務遂行能力評価</span>は、職員各人に必要な業務に対する姿勢及び能力を評価する。\n</div><div class='correctline'>正しい文： <span class='insline'>業務遂行能力評価は、職員各人に必要な業務に対する姿勢及び能力を評価する。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "補助者を設置する場合は、評価期間が開始される前（９月中又は３月中）に行い、原則、評価期間中 に追加や変更を行うことはできない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 12,
-    "title": "第12問 業績評価ついて正しい文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-correct",
-    "options": [
-      {
-        "label": "1",
-        "text": "休職等により勤務した期間が当該評価期間の1／６に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>休職等により勤務した期間が当該評価期間の<del>1／６</del><span class='ins'>5／６</span>に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。\n</div><div class='correctline'>正しい文： <span class='insline'>休職等により勤務した期間が当該評価期間の5／６に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。\n</span></div>"
-      },
-      {
-        "label": "2",
-        "text": "評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね5回）を行い、被評価者に自覚を促すことが必要である。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね<del>5回</del><span class='ins'>3回</span>を行い、被評価者に自覚を促すことが必要である。\n</div><div class='correctline'>正しい文： <span class='insline'>評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね3回）を行い、被評価者に自覚を促すことが必要である。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "業績評価において、基本年俸表適用職員以外の役職手当を支給されている被評価者のことを役職職員という。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "評価者会議は、業績評価の責任者である理事長（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>評価者会議は、業績評価の責任者である<del>理事長</del><span class='ins'>院長</span>（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。\n</div><div class='correctline'>正しい文： <span class='insline'>評価者会議は、業績評価の責任者である院長（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "被評価者は、評価制度等についての疑問がある場合には、評価者若しくは苦情担当窓口等へ申し出ることができる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 13,
-    "title": "第13問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "労働基準法上の労働者性の判断基準として、労務提供の形態が指揮監督下の労働であることや報酬の性格が使用者の指揮監督の下に一定時間労務を提供していることへの対価と判断されるかどうか等が挙げられる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "労働基準法は強行規定のため、労働基準法に定める基準に達しない契約はその部分に関して無効であり、その部分に関しては労働基準法に定める基準が適用になる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "期間の定めのある契約は、両当事者（労働者と使用者）をその期間中拘束する性格のものであるため、例外なく、契約当事者双方は一方的な理由だけでの解約はできない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>期間の定めのある契約は、両当事者（労働者と使用者）をその期間中拘束する性格のものであるため、<del>例外なく</del><span class='ins'>特別な事情がない限り</span>、契約当事者双方は一方的な理由だけでの解約はできない。\n</div><div class='correctline'>正しい文： <span class='insline'>期間の定めのある契約は、両当事者（労働者と使用者）をその期間中拘束する性格のものであるため、特別な事情がない限り、契約当事者双方は一方的な理由だけでの解約はできない。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "労働基準法では、賃金とは名称を問わず労働の対価として使用者が支払う全てのものをいい、使用者は、賃金を①通貨で、②全額を、③毎月 1 回以上、④一定の期日に、⑤直接労働者に支払わなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "期間の定めのある契約は原則として 5 年を超えてはならない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>期間の定めのある契約は原則として<del>5 年</del><span class='ins'>3 年</span>を超えてはならない。\n</div><div class='correctline'>正しい文： <span class='insline'>期間の定めのある契約は原則として 3 年を超えてはならない。\n</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 14,
-    "title": "第14問 労働条件の明示ついて必ず明示しなければならない事項として誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "休職に関する事項",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>定めをした場合に明示しなければならない事項。\n</span></div>"
-      },
-      {
-        "label": "2",
-        "text": "期間の定めのある労働契約を更新する場合の基準",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "退職手当の定めが適用される労働者の範囲、退職手当の決定、計算・支払いの方法及び支払い時期",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>定めをした場合に明示しなければならない事項。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "始業・終業の時刻、所定労働時間を超える労働（早出・残業等）の有無、休憩時間、休日、休暇、２交替制等に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "労働契約の期間",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 15,
-    "title": "第15問 労働条件の明示ついて定めをした場合に明示しなければならない事項として誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "労働者に負担させる食費、作業用品などに関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "臨時に支払われる賃金、賞与等及び最低賃金額に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "退職に関する事項（解雇の事由を含む。）",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>必ず明示しなければならない事項\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "期間の定めのある労働契約を更新する場合の基準",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>必ず明示しなければならない事項\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "災害補償、業務外の傷病扶助に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 16,
-    "title": "第16問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "６か月間継続勤務して全労働日の８割以上出勤した場合は、週 5 日働いている場合は１０日間の有給休暇を与えなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "年次有給休暇は付与された日から 2 年で時効となる。付与された日から 1 年間で使い切れなかった年次有給休暇は翌年に繰り越し、新たに与えられた休暇日数に加算されるが、さらに 1 年間使わなかったときは時効により消滅する。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "年次有給休暇は前日までに指定すれば、無条件で与えられるものであり、年次有給休暇の取得を認めることにより事業の正常な運営を妨げることになる場合でも、別の日に取得するように求めることができない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>年次有給休暇は前日までに指定すれば、無条件で与えられるものであり、<del>無条件で与えられるものであり、年次有給休暇の取得を認めることにより事業の正常な運営を妨げることになる場合でも、別の日に取得するように求めることができない。</del><span class='ins'>ただし、年次有給休暇の取得を認めることにより事業の正常な運営を妨げることになる場合は、別の日に取得するように求めることができる。（これを「時季変更権」という。）</span>\n</div><div class='correctline'>正しい文： <span class='insline'>次有給休暇は前日までに指定すれば、無条件で与えられるものであり、ただし、年次有給休暇の取得を認めることにより事業の正常な運営を妨げることになる場合は、別の日に取得するように求めることができる。（これを「時季変更権」という。）\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "監視又は断続的労働に従事する者と宿日直勤務者については、理事長の許可を条件に労働時間等の規制を全部又は一部除外している。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>監視又は断続的労働に従事する者と宿日直勤務者については、<del>理事長</del><span class='ins'>所轄労働基準監督署長</span>の許可を条件に労働時間等の規制を全部又は一部除外している。\n</div><div class='correctline'>正しい文： <span class='insline'>監視又は断続的労働に従事する者と宿日直勤務者については、所轄労働基準監督署長の許可を条件に労働時間等の規制を全部又は一部除外している。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "常時１０人以上の労働者を使用している事業場では就業規則を作成しなければならない。また、「常時１０人以上の労働者」には、パートタイム労働者等は含まれない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>常時１０人以上の労働者を使用している事業場では就業規則を作成しなければならない。また、「常時１０人以上の労働者」には、<del>パートタイム労働者等は含まれない。</del><span class='ins'>パートタイム労働者等も含まれる。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>常時１０人以上の労働者を使用している事業場では就業規則を作成しなければならない。また、「常時１０人以上の労働者」には、パートタイム労働者等も含まれる。\n</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 17,
-    "title": "第17問 就業規則で必ず記載しなければならない事項（絶対的必要記載事項）について誤っている文をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "賃金（臨時の賃金等を除く。）の決定、計算及び支払の方法、締切り及び支払 時期、昇給に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "退職手当の定めをする場合には、適用される労働者の範囲、退職手当の決定、 計算及び支払の方法、退職手当の支払の時期に関する事項",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>定めをする場合に、記載しなければならない事項\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "臨時の賃金等（退職手当を除きます。）及び最低賃金額の定めをする場合には、これに関する事項",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='correctline'>正しい文： <span class='insline'>定めをする場合に、記載しなければならない事項\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "始業及び終業の時刻、休憩時間、休日、休暇、労働者を２組以上に分けて交替 で就業させる場合においては就業時転換に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "退職（解雇の事由を含む。）に関する事項",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 18,
-    "title": "第18問 次の中から正しい文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-correct",
-    "options": [
-      {
-        "label": "1",
-        "text": "賃金台帳は最後の記入をした日から、労働者名簿は退職日から５年間保存しなければならない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "賃金台帳の記載事項として、氏名、履歴、性別、住所、従事する業務の種類、雇入れ年月日などがある。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>賃金台帳</del><span class='ins'>労働者名簿</span>の記載事項として、氏名、履歴、性別、住所、従事する業務の種類、雇入れ年月日などがある。\n</div><div class='correctline'>正しい文： <span class='insline'>労働者名簿の記載事項として、氏名、履歴、性別、住所、従事する業務の種類、雇入れ年月日などがある。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "労働者名簿の記載事項として、性別、労働日数、時間外、休日労働時間数及び深夜業の時間数、賃金控除の額などがある。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>労働者名簿</del><span class='ins'>賃金台帳</span>の記載事項として、性別、労働日数、時間外、休日労働時間数及び深夜業の時間数、賃金控除の額などがある。\n</div><div class='correctline'>正しい文： <span class='insline'>賃金台帳の記載事項として、性別、労働日数、時間外、休日労働時間数及び深夜業の時間数、賃金控除の額などがある。 \n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "賃金台帳と労働者名簿等は別々で作成しなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>賃金台帳と労働者名簿等は<del>別々で作成しなければならない。</del><span class='ins'>賃金台帳と労働者名簿等を合わせて作成しても構わない。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>賃金台帳と労働者名簿等は賃金台帳と労働者名簿等を合わせて作成しても構わない。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "労働基準法の一部を改正する法律（令和２年法律第１３号）により、賃金台帳や労働者名簿等の記録の保存期間が３年から５年に延長された。 ただし、 経過措置として、当分の間はその期間が３年となる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 19,
-    "title": "第19問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から１0 日以内に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から<del>１0 日以内</del><span class='ins'>１４日以内</span>に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。\n</div><div class='correctline'>正しい文： <span class='insline'>総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から１４日以内に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。\n</span></div>"
-      },
-      {
-        "label": "2",
-        "text": "安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、安全衛生推進者の選任を義務づけている。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、<del>安全衛生推進者</del><span class='ins'>作業主任者</span>の選任を義務づけている。\n</div><div class='correctline'>正しい文： <span class='insline'>安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、作業主任者の選任を義務づけている。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "安衛法では、事業場を一つの適用単位として、各事業場の業種、規模等に応じて、安全委員会、衛生委員会の設置を義務づけている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "総括安全衛生管理者とは、安全管理者、衛生管理者を指揮させるとともに、労働者の危険または健康障害を防止するための措置等の 業務を統括管理させることとされており、常時１,０００人以上の労働者を使用するすべての事業場で選任することとされている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "安全管理者、衛生管理者の選任を要しない労働者数１０人から４９人の事業場には、安全衛生推進者などの選任を義務づけている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 20,
-    "title": "第20問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "安全管理者は、業務として建設物、設備、作業場所または作業方法に危険がある場合に応急措置又は適当な防止の措置を行う。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "安全管理者とは、安全衛生業務のうち、安全に係る技術的事項を管理させることとされており、常時５０人以上の労働者を使用するすべての事業場で選任することとされている。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>安全管理者とは、安全衛生業務のうち、安全に係る技術的事項を管理させることとされており、<del>常時５０人以上の労働者を使用するすべての事業場で選任することとされている。</del><span class='ins'>安衛法上、機構病院においては、選任義務はない。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>安全管理者とは、安全衛生業務のうち、安全に係る技術的事項を管理させることとされており、安衛法上、機構病院においては、選任義務はない。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "衛生管理者とは、安全衛生業務のうち、衛生に係る技術的事項を管理させることとされており、安衛法上、機構病院においては、選任義務はない。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>衛生管理者とは、安全衛生業務のうち、衛生に係る技術的事項を管理させることとされており、<del>安衛法上、機構病院においては、選任義務はない。</del><span class='ins'>常時５０人以上の労働者を使用するすべての事業場で選任することとされている。</span>\n</div><div class='correctline'>正しい文： <span class='insline'>衛生管理者とは、安全衛生業務のうち、衛生に係る技術的事項を管理させることとされており、常時５０人以上の労働者を使用するすべての事業場で選任することとされている。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "産業医とは、専門家として労働者の健康管理等に当たらせることとされており、常時５０人以上の労働者を使用するすべての事業場で選任することとされている。ただし、常時３，０００人を超える労働者を使用する事業場では、２人以上の産業医を選任することとされている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "作業主任者とは、労働災害を防止するための管理を必要とする一定の作業について、作業に従事する労働者を指揮させるとともに、労働者の危険または健康障害を防止するための措置等の業務を行わせることとなっている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      }
-    ]
-  },
-  {
-    "id": 21,
-    "title": "第21問 次の中から誤っている文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-incorrect",
-    "options": [
-      {
-        "label": "1",
-        "text": "衛生管理者は、少なくとも毎週１回作業場を巡視し、設備、作業方法または衛生状態に有害のおそれがあるときに、直ちに、労働者の健康障害を防止するため必要な措置を講じなければならない。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "産業医は、労働者の健康を確保するため必要があると認めるときは、総括安全衛生管理者に対し、労働者の健康管理等について必要な勧告をすることができる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>産業医は、労働者の健康を確保するため必要があると認めるときは、<del>総括安全衛生管理者に対し</del><span class='ins'>事業者に対し</span>、労働者の健康管理等について必要な勧告をすることができる。\n</div><div class='correctline'>正しい文： <span class='insline'>産業医は、労働者の健康を確保するため必要があると認めるときは、事業者に対し、労働者の健康管理等について必要な勧告をすることができる。\n</span></div>"
-      },
-      {
-        "label": "3",
-        "text": "安衛法第１７条では、一定の規模及び業種の区分に応じ「安全委員会」を設けることとされている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "4",
-        "text": "安衛法第１８条では、５０人以上のすべての事業場に「衛生委員会」を設けることとされている。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "5",
-        "text": "産業医は、労働者の健康障害の防止に関して、事業者に対する勧告または衛生管理者に対する指導、助言をすることができる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>>産業医は、労働者の健康障害の防止に関して、<del>事業者</del><span class='ins'>総括安全衛生管理者</span>に対する勧告または衛生管理者に対する指導、助言をすることができる。\n</div><div class='correctline'>正しい文： <span class='insline'>産業医は、労働者の健康障害の防止に関して、総括安全衛生管理者に対する勧告または衛生管理者に対する指導、助言をすることができる。\n</span></div>"
-      }
-    ]
-  },
-  {
-    "id": 22,
-    "title": "第22問 次の中から正しい文章をすべて選びなさい。",
-    "instruction": "",
-    "type": "select-correct",
-    "options": [
-      {
-        "label": "1",
-        "text": "総括安全衛生管理者の職務には、健康診断の実施その他健康の保持増進のための措置に関すること、並びに労働災害の原因の調査及び再発防止対策に関することが含まれる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "2",
-        "text": "産業医の職務には作業環境の維持管理に関することが含まれる。",
-        "correct": true,
-        "explanation": "",
-        "explanation_html": ""
-      },
-      {
-        "label": "3",
-        "text": "安全管理者の職務には、労働衛生保護具、救急用具等の点検及び整備が含まれる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>安全管理者</del><span class='ins'>衛生管理者</span>の職務には、労働衛生保護具、救急用具等の点検及び整備が含まれる。\n</div><div class='correctline'>正しい文： <span class='insline'>衛生管理者の職務には、労働衛生保護具、救急用具等の点検及び整備が含まれる。\n</span></div>"
-      },
-      {
-        "label": "4",
-        "text": "総括安全衛生管理者の職務には安全に関する規程の作成に関することが含まれる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>総括安全衛生管理者</del><span class='ins'>安全委員会</span>の職務には安全に関する規程の作成に関することが含まれる。\n</div><div class='correctline'>正しい文： <span class='insline'>安全委員会の職務には安全に関する規程の作成に関することが含まれる。\n</span></div>"
-      },
-      {
-        "label": "5",
-        "text": "衛生管理者の職務には衛生に関する規程の作成に関することが含まれる。",
-        "correct": false,
-        "explanation": "",
-        "explanation_html": "<div class='diffline'>><del>衛生管理者</del><span class='ins'>衛生委員会</span>の職務には衛生に関する規程の作成に関することが含まれる。\n</div><div class='correctline'>正しい文： <span class='insline'>衛生委員会の職務には衛生に関する規程の作成に関することが含まれる。\n</span></div>"
-      }
-    ]
-  }
-];
+const DATA=window.QUIZ_DATA||[];
+let currentIndex=0;
+const state=DATA.map(()=>({graded:false,correct:null}));
 
-</script>
-<script>
-// DATA loaded from external file
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));}
+function getCard(index){return document.querySelector('.card[data-index="'+index+'"]');}
+function getCurrentCard(){return getCard(currentIndex);}
+function clearFeedback(card,form){
+  form.querySelectorAll('.opt').forEach(x=>x.classList.remove('correct','incorrect','sel','correct-answer'));
+  card.querySelectorAll('.score,.explain-details').forEach(x=>x.remove());
+}
+function hasAnswer(form){return form.querySelectorAll('input[type="checkbox"]:checked').length>0;}
 
+function render(){
+  const app=document.getElementById('app'); app.innerHTML='';
+  DATA.forEach((q,index)=>{
+    const card=document.createElement('section'); card.className='card'; card.dataset.index=index; card.dataset.qid=q.id;
+    const chip=document.createElement('div'); chip.className='question-chip'; chip.textContent='問 '+(index+1)+' / '+DATA.length; card.appendChild(chip);
+    const h=document.createElement('div'); h.className='title'; h.textContent=q.title; card.appendChild(h);
+    const form=document.createElement('div'); form.className='question-options';
 
-function render() {
-  const app = document.getElementById('app');
-  app.innerHTML = "";
-
-  DATA.forEach(q => {
-    const card = document.createElement('section');
-    card.className = 'card';
-
-    // ────────────── 問題文（title） ──────────────
-    const h = document.createElement('div');
-    h.className = 'title';
-    h.innerHTML = (q.title || '').replace(/\n/g,'<br>');
-    card.appendChild(h);
-
-    // ★ instruction部分は削除（表示しない）
-
-    // ────────────── 選択肢（シャッフルなし） ──────────────
-    const form = document.createElement('div');
-    q.options.forEach((o, i) => {
-      const opt = document.createElement('label');
-      opt.className = 'opt';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.name = `q_${q.id}`;
-      cb.value = i;
-
-      const span = document.createElement('div');
-      const safeText = (o.text || '')
-        .replace(/</g,'&lt;')
-        .replace(/\n/g,'<br>');
-      span.innerHTML = `${safeText}`;
-
-      opt.appendChild(cb);
-      opt.appendChild(span);
-      form.appendChild(opt);
+    q.options.forEach((o,idx)=>{
+      const label=document.createElement('label'); label.className='opt'; label.dataset.originalIndex=idx;
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.name='q_'+q.id; cb.value=idx;
+      cb.addEventListener('change',()=>{
+        state[index].graded=false; state[index].correct=null; clearFeedback(card,form); updateUI();
+      });
+      const body=document.createElement('div'); body.className='option-body';
+      const n=document.createElement('span'); n.className='option-label'; n.textContent=o.label+'.';
+      const t=document.createElement('span'); t.className='option-text'; t.textContent=o.text;
+      body.append(n,t); label.append(cb,body); form.appendChild(label);
     });
     card.appendChild(form);
 
-    // ────────────── 採点ボタン ──────────────
-    const controls = document.createElement('div');
-    controls.className = 'controls';
-
-    const btn = document.createElement('button');
-    btn.textContent = '採点';
-    btn.onclick = () => {
-      const labels = form.querySelectorAll('.opt');
-      q.options.forEach((o, idx) => {
-        const cb = form.querySelector(`input[value="${idx}"]`);
-        const selected = cb.checked;
-        const isCorrect = !!o.correct;
-        labels[idx].classList.remove('correct','incorrect','sel');
-        if (selected) {
-          labels[idx].classList.add(isCorrect ? 'correct' : 'incorrect', 'sel');
-        }
-        let exp = labels[idx].querySelector('.explain');
-        if (!exp && (isCorrect || selected) && (o.explanation_html || o.explanation)) {
-          exp = document.createElement('div');
-          exp.className = 'explain';
-          if (o.explanation_html) {
-            exp.innerHTML = o.explanation_html;
-          } else {
-            exp.textContent = o.explanation;
-          }
-          labels[idx].appendChild(exp);
-        }
-      });
-      const exact = q.options.every((o, idx) => {
-        const selected = form.querySelector(`input[value="${idx}"]`).checked;
-        return (!!o.correct) === selected;
-      });
-      const scoreArea = card.querySelector('.score') 
-        || (() => {
-            const s = document.createElement('div');
-            s.className = 'score';
-            card.appendChild(s);
-            return s;
-          })();
-      scoreArea.textContent = exact ? '✅ 正解！' : '❌ 不正解';
-    };
-
-    const btnReset = document.createElement('button');
-    btnReset.textContent = 'リセット';
-    btnReset.className = 'secondary';
-    btnReset.onclick = () => {
-      form.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-      form.querySelectorAll('.opt').forEach(o => o.classList.remove('correct','incorrect','sel'));
-      form.querySelectorAll('.explain').forEach(e => e.remove());
-      const s = card.querySelector('.score'); if (s) s.remove();
-    };
-
-    controls.appendChild(btn);
-    controls.appendChild(btnReset);
-    card.appendChild(controls);
+    const resetRow=document.createElement('div'); resetRow.className='question-reset-row';
+    const reset=document.createElement('button'); reset.type='button'; reset.className='question-reset'; reset.textContent='この問題をリセット';
+    reset.onclick=()=>resetCard(card,form,index); resetRow.appendChild(reset); card.appendChild(resetRow);
     app.appendChild(card);
   });
-
-  const note = document.createElement('div');
-  note.className = 'footer';
-  note.innerHTML = '※ 自動抽出の都合で一部の肢が欠落・誤判定する可能性があります。原資料に照らして随時修正してください。';
+  const note=document.createElement('div'); note.className='footer';
+  note.textContent='※ 問題文は「確認テスト前半2026」、正答・修正内容は「確認テスト前半_回答2026」を基にしています。';
   app.appendChild(note);
+  buildQuestionGrid(); showQuestion(0,false);
 }
-render();
 
+function gradeCurrent(){
+  const q=DATA[currentIndex], card=getCurrentCard(); if(!card)return;
+  const form=card.querySelector('.question-options'); clearFeedback(card,form);
+  const selected=[...form.querySelectorAll('input[type="checkbox"]:checked')].map(x=>Number(x.value));
+  if(selected.length===0){showMessage(card,'⚠️ 選択肢を選んでから採点してください。');return;}
+  const selectedSet=new Set(selected);
+  const exact=q.options.every((o,idx)=>selectedSet.has(idx)===!!o.correct);
+
+  q.options.forEach((o,idx)=>{
+    const opt=form.querySelector('.opt[data-original-index="'+idx+'"]');
+    const input=opt.querySelector('input');
+    if(input.checked) opt.classList.add(o.correct?'correct':'incorrect','sel');
+    if(!exact && o.correct && !input.checked) opt.classList.add('correct-answer');
+  });
+
+  showMessage(card,exact?'✅ 正解！':'❌ 不正解');
+  addExplanation(card,q);
+  state[currentIndex].graded=true; state[currentIndex].correct=exact; updateUI();
+  setTimeout(()=>{const r=card.querySelector('.score');if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},40);
+}
+
+function showMessage(card,text){
+  const s=document.createElement('div'); s.className='score'; s.textContent=text; card.appendChild(s);
+}
+
+function addExplanation(card,q){
+  const details=document.createElement('details'); details.className='explain-details'; details.open=true;
+  const summary=document.createElement('summary'); summary.textContent='解説を開く／閉じる';
+  const exp=document.createElement('div'); exp.className='explain';
+  const correctLabels=q.options.filter(o=>o.correct).map(o=>o.label).join('、');
+  const answer=document.createElement('div'); answer.className='answerline'; answer.textContent='正解：'+correctLabels; exp.appendChild(answer);
+
+  let count=0;
+  q.options.forEach(o=>{
+    if(!o.explanation_html)return;
+    count++;
+    const block=document.createElement('div'); block.className='diffblock';
+    const head=document.createElement('div'); head.className='difflabel'; head.textContent='選択肢 '+o.label;
+    const body=document.createElement('div'); body.innerHTML=o.explanation_html;
+    block.append(head,body); exp.appendChild(block);
+  });
+  if(count===0){
+    const p=document.createElement('div');
+    p.textContent='解答資料では上記の選択肢が解答として示されています。';
+    exp.appendChild(p);
+  }
+  details.append(summary,exp); card.appendChild(details);
+}
+
+function shuffledCopy(items){
+  const a=[...items];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function setQuestionShuffle(card,enabled){
+  const form=card.querySelector('.question-options'); if(!form)return;
+  let items=[...form.querySelectorAll('.opt')];
+  if(enabled) items=shuffledCopy(items); else items.sort((a,b)=>Number(a.dataset.originalIndex)-Number(b.dataset.originalIndex));
+  items.forEach(item=>form.appendChild(item));
+  form.querySelectorAll('.option-label').forEach(x=>x.style.display=enabled?'none':'inline');
+}
+function setGlobalShuffle(enabled){DATA.forEach((q,index)=>{const card=getCard(index);if(card)setQuestionShuffle(card,enabled);});}
+function resetCard(card,form,index){
+  form.querySelectorAll('input').forEach(x=>x.checked=false); clearFeedback(card,form);
+  state[index].graded=false; state[index].correct=null; updateUI();
+}
+function resetAll(){
+  DATA.forEach((q,index)=>{const card=getCard(index);if(card)resetCard(card,card.querySelector('.question-options'),index);});
+  showQuestion(0,true);
+}
+function getAnsweredCount(){
+  return DATA.reduce((n,q,index)=>{const card=getCard(index);return n+(card&&hasAnswer(card.querySelector('.question-options'))?1:0);},0);
+}
+function showQuestion(index,scrollTop=true){
+  if(index<0||index>=DATA.length)return;
+  currentIndex=index;
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  const card=getCurrentCard(); if(card)card.classList.add('active');
+  if(scrollTop)window.scrollTo({top:0,behavior:'smooth'}); updateUI();
+}
+function updateUI(){
+  const pct=DATA.length?((currentIndex+1)/DATA.length)*100:0;
+  document.getElementById('progressText').textContent='問 '+(currentIndex+1)+' / '+DATA.length;
+  document.getElementById('answeredText').textContent='回答 '+getAnsweredCount()+' / '+DATA.length;
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('prevBtn').disabled=currentIndex===0;
+  document.getElementById('nextBtn').disabled=currentIndex===DATA.length-1;
+  document.querySelectorAll('.qjump').forEach((btn,index)=>{
+    btn.classList.remove('answered','correct','wrong','current');
+    if(index===currentIndex)btn.classList.add('current');
+    const card=getCard(index);
+    if(state[index].graded)btn.classList.add(state[index].correct?'correct':'wrong');
+    else if(card&&hasAnswer(card.querySelector('.question-options')))btn.classList.add('answered');
+  });
+}
+function buildQuestionGrid(){
+  const grid=document.getElementById('questionGrid'); grid.innerHTML='';
+  DATA.forEach((q,index)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='qjump'; b.textContent=index+1;
+    b.onclick=()=>{closeQuestionList();showQuestion(index,true);}; grid.appendChild(b);
+  });
+}
+function openQuestionList(){
+  const o=document.getElementById('questionOverlay'); o.classList.add('open'); o.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden'; updateUI();
+}
+function closeQuestionList(){
+  const o=document.getElementById('questionOverlay'); o.classList.remove('open'); o.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+
+render();
+document.getElementById('prevBtn').onclick=()=>showQuestion(currentIndex-1,true);
+document.getElementById('nextBtn').onclick=()=>showQuestion(currentIndex+1,true);
+document.getElementById('gradeBtn').onclick=gradeCurrent;
+document.getElementById('questionListBtn').onclick=openQuestionList;
+document.getElementById('closeQuestionListBtn').onclick=closeQuestionList;
+document.getElementById('questionOverlay').onclick=function(e){if(e.target===this)closeQuestionList();};
+document.getElementById('globalShuffle').onchange=function(){setGlobalShuffle(this.checked);};
+document.getElementById('resetAllBtn').onclick=()=>{if(confirm('全22問の回答をリセットしますか？'))resetAll();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeQuestionList();});
 </script>
 </body>
 </html>
